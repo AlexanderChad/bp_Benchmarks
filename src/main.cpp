@@ -7,6 +7,13 @@ void setup()
 
   CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk; // Разрешаем TRACE
   DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;            // Разрешаем счетчик тактов
+
+  // init ION
+  pinMode(ION_Ground_PIN, OUTPUT);
+  digitalWrite(ION_Ground_PIN, LOW);
+  pinMode(ION_ADC_PIN, INPUT_ANALOG);
+  pinMode(ION_Power_PIN, OUTPUT);
+  digitalWrite(ION_Power_PIN, HIGH);
 }
 
 uint16_t Filtr_val(uint16_t *old_val, uint16_t new_val)
@@ -63,22 +70,18 @@ void loop()
     }
     PrintTime(3);
 
-    // чтобы оптимизатор не упростил код
-    Serial.print(big_mass[9]);
-    Serial.print(big_mass2[9]);
-
     uint16_t adc_val;
     Serial.println("Test 4. ADC speed.");
     StartTime;
     for (uint64_t i = 0; i < ADC_INT_speed; i++)
     {
-      adc_val += analogRead(ADC_PIN);
+      adc_val += analogRead(ION_ADC_PIN);
     }
     PrintTime(4);
 
-    Serial.println("Test 5. ADC jitter.");
+    Serial.println("Test 5. ADC jitter and readind ION.");
     StartTime;
-    adc_val = analogRead(ADC_PIN);
+    adc_val = analogRead(ION_ADC_PIN);
     uint16_t min_val = adc_val;
     uint16_t max_val = adc_val;
     uint16_t med_val = adc_val;
@@ -86,7 +89,7 @@ void loop()
     uint16_t max_med = med_val;
     for (uint64_t i = 0; i < ADC_INT_jitter; i++)
     {
-      adc_val = analogRead(ADC_PIN);
+      adc_val = analogRead(ION_ADC_PIN);
       Filtr_val(&med_val, adc_val);
       if (adc_val < med_val)
       {
@@ -106,6 +109,7 @@ void loop()
       }
     }
     PrintTime(5);
+    BResult[Benchmarks_int][4][2] = (uint64_t)med_val;
     sprintf(buff, "min_val=%d, min_med=%d, med_val=%d, max_med=%d, max_val=%d", min_val, min_med, med_val, max_med, max_val);
     Serial.println(buff);
 
@@ -132,7 +136,7 @@ void loop()
   {
     if (Benchmarks_int == Benchmarks_multiplier)
     {
-      for (uint8_t i = 0; i < 6; i++)
+      for (uint8_t i = 0; i < Benchmarks_tests; i++)
       {
         for (uint8_t j = 0; j < Benchmarks_multiplier; j++)
         {
@@ -142,9 +146,9 @@ void loop()
       }
       Serial.println("\nAverage values:");
       Serial.println("Test\tpc\tmcs");
-      for (uint8_t i = 0; i < 6; i++)
+      for (uint8_t i = 0; i < Benchmarks_tests; i++)
       {
-        sprintf(buff, "%d\t%ld\t%ld", i + 1, (long)BResult[0][i][0], (long)BResult[0][i][1]);
+        sprintf(buff, "%d\t%ld\t%ld\t%ld", i + 1, (long)BResult[0][i][0], (long)BResult[0][i][1], (long)BResult[0][i][2]);
         Serial.println(buff);
       }
       Benchmarks_int++;

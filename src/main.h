@@ -1,13 +1,19 @@
 #pragma once
 #include <Arduino.h>
 
+#define ION_Power_PIN PA2  // пин vcc
+#define ION_ADC_PIN PA1    // пин АЦП
+#define ION_Ground_PIN PA0 // пин gnd
+
 #define const_mass_size 1000 // размер массива в ПЗУ
 #define CLOCKS_PER_MCSEC 72  // тактов процессора за микросекунду
+
+#define Benchmarks_tests 6 // количество тестов
 
 #define Benchmarks_multiplier 5 // запусков бенчмарка после запуска (сброса)
 uint8_t Benchmarks_int = 0;
 
-uint64_t BResult[Benchmarks_multiplier][6][2];
+uint64_t BResult[Benchmarks_multiplier][Benchmarks_tests][2];
 
 // Обнуляем счетчик
 #define StartTime DWT->CYCCNT = 0
@@ -21,8 +27,7 @@ uint64_t BResult[Benchmarks_multiplier][6][2];
     BResult[Benchmarks_int][test_num - 1][1] = (uint64_t)test##test_num##_time_mcs
 
 #define const_mass_multiplier 1 // во сколько раз массив должен быть больше в ОЗУ
-#define big_mass_size 1000     // const_mass_size *const_mass_multiplier // размер массива в RAM
-#define ADC_PIN PA5             // пин АЦП
+#define big_mass_size 1000      // const_mass_size *const_mass_multiplier // размер массива в RAM
 #define ADC_INT_speed 50000     // количество интераций (замеров) в тесте speed
 #define ADC_INT_jitter 1000     // количество интераций (замеров) в тесте jitter
 #define GPIO_SPEED_PIN PC13     // пин для теста gpio_speed
